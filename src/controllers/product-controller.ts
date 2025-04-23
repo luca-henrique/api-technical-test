@@ -2,19 +2,15 @@ import { NextFunction, Request, Response } from 'express';
 import listUsersUseCase from '../use-cases/list-product-use-case';
 import createUserCase from '../use-cases/create-product-case';
 import changeMarkeProductByIdUsecase from '../use-cases/change-marke-product-by-id.usecase';
+import { updateCheckedSchema } from '../validations/update-checked.schema';
+import { createProductSchema } from '../validations/create-product.schema';
 import { z } from 'zod';
 
-export const updateCheckedSchema = z.object({
-  id: z.string().regex(/^\d+$/).transform(Number), // vem da URL como string
-  body: z.object({
-    checked: z.boolean(),
-  }),
-});
 class UserController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const page = parseInt(req.query.page as string) || 1; // Página padrão 1
-      const limit = parseInt(req.query.limit as string) || 10; // Limite padrão 10 usuários
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
 
       const users = await listUsersUseCase.execute(page, limit);
 
@@ -31,11 +27,19 @@ class UserController {
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = await createUserCase.execute(req.body);
+      const validatedData = createProductSchema.parse(req.body);
+
+      const user = await createUserCase.execute(validatedData);
       res.status(201).json(user);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Retorna erros de validação
+        res.status(400).json({
+          message: 'Erro de validação.',
+          errors: error.errors,
+        });
+      }
       next(error);
-      res.status(500).json({ message: 'Erro ao criar usuário', error });
     }
   }
 
