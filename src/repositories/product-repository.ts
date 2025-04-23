@@ -47,6 +47,42 @@ class ProductRepository {
       throw error;
     }
   }
+
+  async findById(id: number) {
+    const query = `
+      SELECT id, category, name, quantity, unit, checked
+      FROM products
+      WHERE id = $1
+    `;
+
+    try {
+      const result = await database.query(query, [id]);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Erro ao buscar produto por ID:', error);
+      throw error;
+    }
+  }
+
+  async updateChecked(id: number, checked: boolean) {
+    const query = `
+      UPDATE products
+      SET checked = $1
+      WHERE id = $2
+      RETURNING id, category, name, quantity, unit, checked
+    `;
+
+    try {
+      const result = await database.query(query, [checked, id]);
+
+      console.log(result.rows[0]);
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Erro ao atualizar campo checked:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ProductRepository();

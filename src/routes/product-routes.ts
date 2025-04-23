@@ -5,6 +5,8 @@ const router = express.Router();
 
 router.get('/', ProductController.getAll);
 
+router.patch('/:id/checked', ProductController.updateChecked);
+
 router.post('/', ProductController.create);
 
 export default router;

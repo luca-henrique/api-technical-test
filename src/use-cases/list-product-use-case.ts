@@ -1,4 +1,4 @@
-const CACHE_KEY = 'users:all';
+const CACHE_KEY = 'products:all';
 const CACHE_TTL = 60; // segundos
 
 import ProductRepository from '../repositories/product-repository';
