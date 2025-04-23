@@ -1,6 +1,6 @@
-# 🚀 Node.js API Boilerplate com PostgreSQL, Redis, Rate Limiting e Cache
+# 🚀 API de Lista de Produtos com Node.js, PostgreSQL, Redis e TypeScript
 
-Este projeto é um boilerplate completo com uma estrutura robusta para APIs em Node.js, utilizando PostgreSQL com SQL puro (sem ORM), Redis para cache e controle de requisições (rate limiting), e diversas boas práticas para produção.
+Este projeto é uma API para gerenciar uma lista de produtos, construída com Node.js, PostgreSQL, Redis e TypeScript. Ele inclui funcionalidades como cache, controle de requisições (rate limiting) e boas práticas para produção.
 
 ---
 
@@ -12,13 +12,15 @@ Este projeto é um boilerplate completo com uma estrutura robusta para APIs em N
 - **TypeScript**
 - **Rate Limiting** com `rate-limiter-flexible`
 - **Cache** com Redis
-- **PM2** para gerenciamento do processo
+- **Zod** para validação de dados
 - **Docker Compose** para PostgreSQL e Redis
 - **.env** para variáveis de ambiente
 
 ---
 
 ## 📦 Instalação
+
+### 1. Clonar o repositório e instalar dependências
 
 ```bash
 git clone <repo>
@@ -27,7 +29,11 @@ npm install
 cp .env.example .env
 ```
 
-### Rodar com Docker (PostgreSQL + Redis)
+### 2. Configurar o ambiente
+
+Edite o arquivo `.env` com as configurações do banco de dados e Redis.
+
+### 3. Rodar com Docker (PostgreSQL + Redis)
 
 ```bash
 docker-compose up -d
@@ -40,142 +46,126 @@ docker-compose up -d
 ```
 src/
 ├── config/
-│   ├── initDB.ts         # Criação automática da tabela users
-│   ├── postgres.ts       # Conexão com PostgreSQL
-│   └── redis.ts          # Conexão com Redis
+│   ├── database.ts         # Configuração do banco de dados PostgreSQL
+│   ├── init-db.ts          # Criação automática da tabela de produtos
+│   └── redis.ts            # Configuração do Redis
+├── controllers/
+│   └── product-controller.ts # Controlador de produtos
 ├── middlewares/
-│   └── rateLimiter.ts    # Middleware de Rate Limiting
-├── useCases/
-│   ├── CreateUser.ts     # Criação de usuário
-│   ├── ListUsers.ts      # Listagem paginada com cache
-│   └── UpdateUser.ts     # Atualização (se aplicável)
+│   ├── error-handle.ts     # Middleware de tratamento de erros
+│   └── rate-limit.ts       # Middleware de rate limiting
+├── repositories/
+│   └── product-repository.ts # Repositório de produtos
 ├── routes/
-│   └── users.routes.ts   # Rotas de usuários
-├── index.ts              # Ponto de entrada, inicializa DB e servidor
-└── ...
+│   └── product-routes.ts   # Rotas de produtos
+├── use-cases/
+│   ├── create-product-case.ts # Caso de uso para criar produtos
+│   ├── list-product-use-case.ts # Caso de uso para listar produtos
+│   └── change-marke-product-by-id.usecase.ts # Caso de uso para atualizar o campo "checked"
+├── app.ts                  # Configuração principal do app
+└── server.ts               # Inicialização do servidor
 ```
 
 ---
 
 ## 🧪 Funcionalidades
 
-### ✅ Criar Usuário
+### ✅ Criar Produto
 
 ```http
-POST /users
+POST /product
 Content-Type: application/json
 
 {
-  "name": "João",
-  "email": "joao@email.com"
+  "category": "Alimentos",
+  "name": "Arroz",
+  "quantity": 2,
+  "unit": "kg",
+  "checked": false
 }
 ```
 
-- Grava direto no PostgreSQL com SQL puro.
+- Grava o produto no banco de dados.
 - Após criação, o cache da listagem é invalidado.
 
 ---
 
-### ✅ Listar Usuários (com paginação e cache)
+### ✅ Listar Produtos (com paginação e cache)
 
 ```http
-GET /users?page=1&limit=10
+GET /product?page=1&limit=10
 ```
 
 - Os resultados são cacheados no Redis por 60 segundos.
-- Reduz chamadas ao banco.
+- Reduz chamadas ao banco de dados.
+
+---
+
+### ✅ Atualizar o campo "checked" de um Produto
+
+```http
+PATCH /product/:id/checked
+Content-Type: application/json
+
+{
+  "checked": true
+}
+```
+
+- Atualiza o campo `checked` de um produto específico.
+- Após atualização, o cache da listagem é invalidado.
 
 ---
 
 ## 🛡️ Rate Limiting
 
-- Middleware com `rate-limiter-flexible` usando Redis.
-- Exemplo: 10 requisições por IP por minuto.
+- Implementado com `rate-limiter-flexible` usando Redis.
+- Limite de 10 requisições por IP a cada 60 segundos.
 - Configurado globalmente ou por rota.
-
----
-
-## ⚙️ PM2
-
-Para executar a aplicação em produção:
-
-```bash
-pm2 start dist/index.js --name "my-app"
-pm2 logs
-pm2 restart my-app
-```
-
----
-
-## 📊 Observabilidade (Grafana + Prometheus)
-
-> Em breve – estrutura base preparada para integração com `prom-client` e monitoramento via Grafana/Prometheus.
 
 ---
 
 ## 🐘 PostgreSQL – Criação automática da tabela
 
-Na inicialização do projeto, o arquivo `initDB.ts` cria a tabela `users` se ela não existir:
+Na inicialização do projeto, o arquivo `init-db.ts` cria a tabela `products` se ela não existir:
 
 ```sql
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  category VARCHAR(100) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  quantity INTEGER NOT NULL,
+  unit VARCHAR(50) NOT NULL,
+  checked BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 ---
 
-## 📄 .gitignore
+## 🐳 Docker Compose
 
-```gitignore
-node_modules
-.env
-dist
-```
+O projeto inclui um arquivo `docker-compose.yml` para configurar PostgreSQL e Redis. Para iniciar os serviços:
 
----
-
-## 🐳 docker-compose.yml
-
-```yaml
-version: '3.8'
-
-services:
-  postgres:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app
-    ports:
-      - '5432:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7
-    ports:
-      - '6379:6379'
-
-volumes:
-  pgdata:
+```bash
+docker-compose up -d
 ```
 
 ---
 
 ## 🧠 Variáveis de Ambiente (.env)
 
+Exemplo de configuração no arquivo `.env`:
+
 ```env
-PORT=3000
 PG_HOST=localhost
 PG_PORT=5432
 PG_USER=postgres
-PG_PASSWORD=postgres
-PG_DATABASE=app
+PG_PASSWORD=root
+PG_DATABASE=shoppingmarketlist
+
+PORT=3001
 
 REDIS_URL=redis://localhost:6379
 ```
@@ -184,38 +174,38 @@ REDIS_URL=redis://localhost:6379
 
 ## ✅ Como Rodar
 
+### 1. Rodar em desenvolvimento
+
 ```bash
-# Instalar dependências
-npm install
-
-# Compilar
-npm run build
-
-# Rodar com node
-npm start
+npm run dev
 ```
 
-Ou com PM2:
+### 2. Compilar para produção
 
 ```bash
-pm2 start dist/index.js --name "api"
+npm run build
+```
+
+### 3. Rodar em produção
+
+```bash
+npm start
 ```
 
 ---
 
 ## 🧠 Cache com Redis
 
-- Implementado cache no endpoint de listagem de usuários com TTL de 60s.
-- Após criação/atualização de usuário, o cache é invalidado com `redis.del`.
+- Implementado cache no endpoint de listagem de produtos com TTL de 60 segundos.
+- Após criação/atualização de produto, o cache é invalidado com `redis.del`.
 
 ---
 
-## 🧠 Rate Limiting com Redis
+## 🛠️ Testes e Monitoramento
 
-- Implementado com `rate-limiter-flexible`.
-- 10 requisições por IP a cada 60s.
-- Protege contra abuso e DDoS.
+- Estrutura preparada para integração com ferramentas de monitoramento como Grafana e Prometheus.
+- Testes podem ser adicionados com bibliotecas como Jest ou Mocha.
 
 ---
 
-Feito com 💻 + ☕
+Feito com 💻 + ☕ por Lucas Paes.
