@@ -6,7 +6,10 @@ class CreateProductUseCase {
     const user = await ProductRepository.create(data);
 
     //Invalidar cache caso seja criado novo produto
-    await redis.del('products:all');
+    const keys = await redis.keys('products:page:*');
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
 
     return user;
   }

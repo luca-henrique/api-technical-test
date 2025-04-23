@@ -6,13 +6,17 @@ import redis from '../config/redis';
 
 class ListProductUseCase {
   async execute(page: number, limit: number) {
-    const cached = await redis.get(CACHE_KEY);
-    if (cached) return JSON.parse(cached);
+    const cacheKey = `products:page:${page}:limit:${limit}`;
 
-    const users = await ProductRepository.findAll(page, limit);
-    await redis.set(CACHE_KEY, JSON.stringify(users), 'EX', CACHE_TTL);
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
-    return users;
+    const products = await ProductRepository.findAll(page, limit);
+    await redis.set(cacheKey, JSON.stringify(products), 'EX', 60); // 60 segundos de cache
+
+    return products;
   }
 }
 

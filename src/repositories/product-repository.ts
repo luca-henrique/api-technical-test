@@ -15,7 +15,7 @@ class ProductRepository {
     const query = `
       SELECT id, category, name, quantity, unit, checked
       FROM products
-      ORDER BY id DESC
+      ORDER BY id ASC
       LIMIT $1 OFFSET $2
     `;
     const values = [limit, offset];
@@ -74,9 +74,6 @@ class ProductRepository {
 
     try {
       const result = await database.query(query, [checked, id]);
-
-      console.log(result.rows[0]);
-
       return result.rows[0];
     } catch (error) {
       console.error('Erro ao atualizar campo checked:', error);
