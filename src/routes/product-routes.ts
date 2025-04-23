@@ -9,4 +9,6 @@ router.patch('/:id/checked', ProductController.updateChecked);
 
 router.post('/', ProductController.create);
 
+router.delete('/:id', ProductController.deleteProduct);
+
 export default router;

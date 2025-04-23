@@ -80,6 +80,22 @@ class ProductRepository {
       throw error;
     }
   }
+
+  async deleteProduct(id: number) {
+    const query = `
+      DELETE FROM products
+      WHERE id = $1
+      RETURNING id, category, name, quantity, unit, checked
+    `;
+
+    try {
+      const result = await database.query(query, [id]);
+      return result.rows[0] || null; // Retorna o produto deletado ou null se não encontrado
+    } catch (error) {
+      console.error('Erro ao deletar produto:', error);
+      throw error;
+    }
+  }
 }
 
 export default new ProductRepository();

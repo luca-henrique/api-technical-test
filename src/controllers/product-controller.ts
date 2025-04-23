@@ -5,6 +5,8 @@ import changeMarkeProductByIdUsecase from '../use-cases/change-marke-product-by-
 import { updateCheckedSchema } from '../validations/update-checked.schema';
 import { createProductSchema } from '../validations/create-product.schema';
 import { z } from 'zod';
+import { deleteProductValidation } from '../validations/delete-product.schema';
+import deleteProductUseCase from '../use-cases/delete-product-use-case';
 
 class UserController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -58,6 +60,32 @@ class UserController {
         validated.id,
         validated.body.checked
       );
+
+      if (!product) {
+        res.status(404).json({ message: 'Produto não encontrado.' });
+      }
+
+      res.status(200).json(product);
+    } catch (error) {
+      next(error);
+      res.status(400).json({
+        message: 'Erro de validação.',
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  }
+
+  async deleteProduct(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const validated = deleteProductValidation.parse({
+        id: req.params.id,
+      });
+
+      const product = await deleteProductUseCase.execute(validated.id);
 
       if (!product) {
         res.status(404).json({ message: 'Produto não encontrado.' });
