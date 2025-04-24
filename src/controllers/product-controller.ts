@@ -33,7 +33,6 @@ class UserController {
       res.status(201).json(user);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Retorna erros de validação
         res.status(400).json({
           message: 'Erro de validação.',
           errors: error.errors,

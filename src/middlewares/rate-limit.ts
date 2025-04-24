@@ -1,16 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import Redis from 'ioredis';
-
-const redisClient = new Redis(
-  process.env.REDIS_URL ?? 'redis://localhost:6379'
-);
+import redis from '../config/redis';
 
 const rateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
+  storeClient: redis,
   keyPrefix: 'rateLimiter',
-  points: 10, // número de requisições
-  duration: 60, // por 60 segundos por IP
+  points: Number(process.env.RATE_LIMIT_REQUEST) || 10, // número de requisições
+  duration: Number(process.env.RATE_LIMIT_DURATION) || 60, // por 60 segundos por IP
 });
 
 const rateLimiterMiddleware = (

@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: node_app
+      POSTGRES_DB: shoppingmarketlist
     ports:
       - '5432:5432'
     volumes:
