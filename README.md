@@ -68,6 +68,12 @@ src/
 
 ---
 
+## 📖 Documentação da API
+
+A documentação da API está disponível no formato Swagger. Para acessá-la, inicie o servidor e acesse:http://localhost:3001/api-docs
+
+O Swagger fornece uma interface interativa para explorar e testar os endpoints da API.
+
 ## 🧪 Funcionalidades
 
 ### ✅ Criar Produto
