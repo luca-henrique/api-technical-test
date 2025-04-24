@@ -17,9 +17,7 @@ class UserController {
       const users = await listUsersUseCase.execute(page, limit);
 
       res.status(200).json({
-        page,
-        limit,
-        data: users,
+        ...users,
       });
     } catch (error) {
       next(error);

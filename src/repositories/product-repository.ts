@@ -18,11 +18,25 @@ class ProductRepository {
       ORDER BY id ASC
       LIMIT $1 OFFSET $2
     `;
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM products
+    `;
     const values = [limit, offset];
 
     try {
       const result = await database.query(query, values);
-      return result.rows;
+
+      const countResult = await database.query(countQuery);
+      const total = parseInt(countResult.rows[0].total, 10);
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data: result.rows,
+        total,
+        totalPages,
+        currentPage: page,
+      };
     } catch (error) {
       console.error('Erro ao listar produtos:', error);
       throw error;
