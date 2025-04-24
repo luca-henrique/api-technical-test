@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import listUsersUseCase from '../use-cases/list-product-use-case';
-import createUserCase from '../use-cases/create-product-case';
+import listUsersUseCase from '../use-cases/list-product-use.usecase';
+import createUserCase from '../use-cases/create-product.usecase';
 import changeMarkeProductByIdUsecase from '../use-cases/change-marke-product-by-id.usecase';
 import { updateCheckedSchema } from '../validations/update-checked.schema';
 import { createProductSchema } from '../validations/create-product.schema';
 import { z } from 'zod';
 import { deleteProductValidation } from '../validations/delete-product.schema';
-import deleteProductUseCase from '../use-cases/delete-product-use-case';
+import deleteProductUseCase from '../use-cases/delete-product.usecase';
 
 class UserController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {

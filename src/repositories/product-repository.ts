@@ -8,7 +8,11 @@ interface Product {
   checked: boolean;
 }
 
+
+
+
 class ProductRepository {
+
   async findAll(page: number, limit: number) {
     const offset = (page - 1) * limit;
 
