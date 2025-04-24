@@ -70,7 +70,7 @@ src/
 
 ## 📖 Documentação da API
 
-A documentação da API está disponível no formato Swagger. Para acessá-la, inicie o servidor e acesse:http://localhost:3001/api-docs
+A documentação da API está disponível no formato Swagger. Para acessá-la, inicie o servidor e acesse:http://localhost:3000/api-docs
 
 O Swagger fornece uma interface interativa para explorar e testar os endpoints da API.
 
@@ -171,7 +171,7 @@ PG_USER=postgres
 PG_PASSWORD=root
 PG_DATABASE=shoppingmarketlist
 
-PORT=3001
+PORT=3000
 
 REDIS_URL=redis://localhost:6379
 ```
