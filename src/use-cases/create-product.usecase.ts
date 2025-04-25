@@ -1,18 +1,19 @@
-import ProductRepository from '../repositories/product-repository';
-import redis from '../config/redis';
+import { invalidateCacheByPattern } from '../helpers/redis-cache.helper';
+import { ProductRepository } from '../repositories/product-repository';
 
-class CreateProductUseCase {
+
+export interface IUseCase {
+  execute(data: any): Promise<any>;
+}
+
+
+export class CreateProductUseCase implements IUseCase {
+  constructor(private readonly productRepository: ProductRepository) {}
   async execute(data: any) {
-    const user = await ProductRepository.create(data);
-
-    //Invalidar cache caso seja criado novo produto
-    const keys = await redis.keys('products:page:*');
-    if (keys.length > 0) {
-      await redis.del(...keys);
-    }
-
+    const user = await this.productRepository.create(data);
+    await invalidateCacheByPattern('products:page:*');
     return user;
   }
 }
 
-export default new CreateProductUseCase();
+

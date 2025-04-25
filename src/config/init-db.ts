@@ -18,7 +18,7 @@ export async function initDB() {
     await database.query(createProductTableQuery);
     console.log('✅ Tabela "products" verificada/criada com sucesso.');
   } catch (error) {
-    console.error('❌ Erro ao criar a tabela users:', error);
+    console.error('❌ Erro ao criar a tabela products:', error);
     process.exit(1);
   }
 }

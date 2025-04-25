@@ -1,29 +1,29 @@
-import database from '../config/database';
-import { IPagination } from '../core/repositories/pagination';
-import { IProductRepository } from '../core/repositories/product-repository';
-import { Product } from '../core/interfaces/product';
+import { Product } from '../../../core/interfaces/product';
+import { IPagination } from '../../../core/repositories/pagination';
+import { IProductRepository } from '../../../core/repositories/product-repository';
 
+import { db } from './client';
 
-export class ProductRepository implements IProductRepository {
+export class SqlProductRepository implements IProductRepository {
   async findAll(page: number, limit: number): Promise<IPagination> {
     const offset = (page - 1) * limit;
 
     const query = `
-      SELECT id, category, name, quantity, unit, checked
-      FROM products
-      ORDER BY id ASC
-      LIMIT $1 OFFSET $2
-    `;
+          SELECT id, category, name, quantity, unit, checked
+          FROM products
+          ORDER BY id ASC
+          LIMIT $1 OFFSET $2
+        `;
     const countQuery = `
-      SELECT COUNT(*) AS total
-      FROM products
-    `;
+          SELECT COUNT(*) AS total
+          FROM products
+        `;
     const values = [limit, offset];
 
     try {
-      const result = await database.query(query, values);
+      const result = await db.query(query, values);
 
-      const countResult = await database.query(countQuery);
+      const countResult = await db.query(countQuery);
       const total = parseInt(countResult.rows[0].total, 10);
       const totalPages = Math.ceil(total / limit);
 
@@ -43,14 +43,14 @@ export class ProductRepository implements IProductRepository {
     const { category, name, quantity, unit, checked } = data;
 
     const query = `
-      INSERT INTO products (category, name, quantity, unit, checked)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, category, name, quantity, unit, checked
-    `;
+          INSERT INTO products (category, name, quantity, unit, checked)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING id, category, name, quantity, unit, checked
+        `;
     const values = [category, name, quantity, unit, checked];
 
     try {
-      const result = await database.query(query, values);
+      const result = await db.query(query, values);
       return result.rows[0];
     } catch (error) {
       console.error('Erro ao criar produto:', error);
@@ -60,13 +60,13 @@ export class ProductRepository implements IProductRepository {
 
   async findById(id: number): Promise<Product | null> {
     const query = `
-      SELECT id, category, name, quantity, unit, checked
-      FROM products
-      WHERE id = $1
-    `;
+          SELECT id, category, name, quantity, unit, checked
+          FROM products
+          WHERE id = $1
+        `;
 
     try {
-      const result = await database.query(query, [id]);
+      const result = await db.query(query, [id]);
       return result.rows[0] || null;
     } catch (error) {
       console.error('Erro ao buscar produto por ID:', error);
@@ -76,14 +76,14 @@ export class ProductRepository implements IProductRepository {
 
   async toggleProductChecked(id: number, checked: boolean): Promise<void> {
     const query = `
-      UPDATE products
-      SET checked = $1
-      WHERE id = $2
-      RETURNING id, category, name, quantity, unit, checked
-    `;
+          UPDATE products
+          SET checked = $1
+          WHERE id = $2
+          RETURNING id, category, name, quantity, unit, checked
+        `;
 
     try {
-      const result = await database.query(query, [checked, id]);
+      const result = await db.query(query, [checked, id]);
       return result.rows[0];
     } catch (error) {
       console.error('Erro ao atualizar campo checked:', error);
@@ -93,13 +93,13 @@ export class ProductRepository implements IProductRepository {
 
   async delete(id: number): Promise<void> {
     const query = `
-      DELETE FROM products
-      WHERE id = $1
-      RETURNING id, category, name, quantity, unit, checked
-    `;
+          DELETE FROM products
+          WHERE id = $1
+          RETURNING id, category, name, quantity, unit, checked
+        `;
 
     try {
-      const result = await database.query(query, [id]);
+      const result = await db.query(query, [id]);
       return result.rows[0] || null; // Retorna o produto deletado ou null se não encontrado
     } catch (error) {
       console.error('Erro ao deletar produto:', error);
@@ -107,4 +107,3 @@ export class ProductRepository implements IProductRepository {
     }
   }
 }
-

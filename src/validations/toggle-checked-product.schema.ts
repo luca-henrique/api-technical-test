@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-export const updateCheckedSchema = z.object({
+export const toggleCheckedProductValidation = z.object({
   id: z.string().regex(/^\d+$/).transform(Number), // vem da URL como string
-  body: z.object({
-    checked: z.boolean(),
-  }),
+  checked: z.boolean(),
 });
